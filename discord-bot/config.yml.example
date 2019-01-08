@@ -1,0 +1,7 @@
+bot_name: MakaroniKaste
+api_key: 
+status_message: Statistika
+mongo_url: mongo
+mongo_db: discord
+mongo_user: 
+mongo_pass: 
