@@ -6,3 +6,8 @@ Installation:
 
 Run:  
 - ```docker-compose up -d``` or ```docker-compose up``` to see output
+
+Commands:
+- ```!mk name``` displays name with little twist
+- ```!mk top``` displays top users by message count
+- ```!mk admin messages``` updates user messages count from discord api to local db

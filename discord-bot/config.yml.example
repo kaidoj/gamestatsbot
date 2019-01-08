@@ -5,3 +5,4 @@ mongo_url: mongo
 mongo_db: discord
 mongo_user: 
 mongo_pass: 
+admin_id:
