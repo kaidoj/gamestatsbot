@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	initBot := &Bot{config.InitConfig(), nil}
+	initBot := &Bot{config.Init(), nil}
 	initBot.Run()
 }

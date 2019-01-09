@@ -17,7 +17,7 @@ type Connection struct {
 func init() {
 	Con = &Connection{}
 
-	Con.config = config.InitConfig()
+	Con.config = config.Init()
 	session, err := mgo.Dial(Con.config.GetString("mongo_url"))
 	if err != nil {
 		panic(err)
