@@ -21,8 +21,8 @@ type Command struct {
 	BotID   string
 }
 
-//ExecuteCommands if found from contents
-func ExecuteCommands(c *Command) error {
+//Execute if found from contents
+func Execute(c *Command) error {
 
 	_, err := regexp.MatchString(commandPrefix, c.Content)
 	if err != nil {

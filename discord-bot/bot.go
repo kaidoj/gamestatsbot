@@ -51,7 +51,6 @@ func (b *Bot) connect() {
 func (b *Bot) errCheck(msg string, err error) {
 	if err != nil {
 		fmt.Printf("%s: %+v", msg, err)
-		panic(err)
 	}
 }
 
@@ -78,10 +77,9 @@ func (b *Bot) commandHandler(session *discordgo.Session, message *discordgo.Mess
 		Message: message,
 		BotID:   botID,
 	}
-	err := commands.ExecuteCommands(command)
+	err := commands.Execute(command)
 	if err != nil {
-		fmt.Printf("%s", err)
-		panic(err)
+		b.errCheck("There was problems with some commands", err)
 	}
 }
 
