@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -48,8 +49,7 @@ func getUsersMessages(c *Command, beforeID string, messagesCh chan []*discordgo.
 	defer wg.Done()
 	messages, err := c.Session.ChannelMessages(c.Message.ChannelID, fetchMessagesCount, beforeID, "", "")
 	if err != nil {
-		fmt.Println(err)
-		panic(err)
+		log.Printf("Error fetching channel messages: %v", err)
 	}
 
 	messagesCh <- messages

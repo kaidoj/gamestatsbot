@@ -1,6 +1,8 @@
 package db
 
 import (
+	"log"
+
 	"github.com/globalsign/mgo"
 	"github.com/kaidoj/gamestatsbot/discord-bot/config"
 	"github.com/spf13/viper"
@@ -20,7 +22,7 @@ func init() {
 	Con.config = config.Init()
 	session, err := mgo.Dial(Con.config.GetString("mongo_url"))
 	if err != nil {
-		panic(err)
+		log.Fatalf("New mongo session could not enstablished: %v", err)
 	}
 
 	Con.session = session
@@ -30,7 +32,7 @@ func init() {
 	})
 
 	if Con == nil {
-		panic("Connection to mongodb not enstablished")
+		log.Print("Connection to mongodb not enstablished")
 	}
 }
 

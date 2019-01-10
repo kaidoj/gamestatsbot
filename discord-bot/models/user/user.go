@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
@@ -97,7 +98,7 @@ func (u *User) GetUsersByMessageCount(limit int) []User {
 	var results []User
 	err := c.Find(bson.M{}).Sort("-messagecount").Limit(limit).All(&results)
 	if err != nil {
-		panic(err)
+		log.Printf("GetUsersByMessageCount() could not fetch messages: %v", err)
 	}
 
 	return results
