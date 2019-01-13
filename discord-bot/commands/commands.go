@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/kaidoj/gamestatsbot/discord-bot/models"
 )
 
 var (
@@ -19,10 +20,11 @@ type Command struct {
 	Session *discordgo.Session
 	Message *discordgo.MessageCreate
 	BotID   string
+	DB      models.ConnectionInterface
 }
 
 //Execute if found from contents
-func Execute(c *Command) error {
+func (c *Command) Execute() error {
 
 	_, err := regexp.MatchString(commandPrefix, c.Content)
 	if err != nil {
@@ -34,17 +36,17 @@ func Execute(c *Command) error {
 
 	switch command {
 	case "top":
-		_, err := DisplayTopUsersByMessageCount(c)
+		_, err := c.DisplayTopUsersByMessageCount()
 		return err
 	case "name":
-		_, err := DisplayUserName(c)
+		_, err := c.DisplayUserName()
 		return err
 	}
 
 	if c.IsAdmin {
 		switch command {
 		case "admin messages":
-			err := UpdateUserMessagesCount(c)
+			err := c.UpdateUserMessagesCount()
 			return err
 		}
 	}

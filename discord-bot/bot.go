@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/kaidoj/gamestatsbot/discord-bot/commands"
+	"github.com/kaidoj/gamestatsbot/discord-bot/models"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/spf13/viper"
-
-	"github.com/kaidoj/gamestatsbot/discord-bot/commands"
-	Model "github.com/kaidoj/gamestatsbot/discord-bot/models/user"
 )
 
 var (
@@ -18,13 +18,10 @@ var (
 type Bot struct {
 	config  *viper.Viper
 	session *discordgo.Session
+	DB      models.ConnectionInterface
 }
 
-func (b *Bot) Run() {
-	b.Connect()
-}
-
-func (b *Bot) Connect() error {
+func (b *Bot) Run() error {
 	discord, err := discordgo.New("Bot " + b.config.GetString("api_key"))
 	b.session = discord
 	b.errCheck("error creating discord session", err)
@@ -57,19 +54,19 @@ func (b *Bot) errCheck(msg string, err error) {
 	}
 }
 
-func (b *Bot) commandHandler(session *discordgo.Session, message *discordgo.MessageCreate) error {
+func (b *Bot) commandHandler(session *discordgo.Session, message *discordgo.MessageCreate) {
 	user := message.Author
 	if user.ID == botID || user.Bot {
 		//Do nothing because the b is talking
-		return nil
+		return
 	}
 
 	//create or update user message count
-	userModel := &Model.User{
+	userModel := &models.User{
 		UserID:   user.ID,
 		Username: user.Username,
 	}
-	userModel.UpdateMessageCount()
+	b.DB.UpdateMessageCount(userModel)
 
 	content := message.Content
 	command := &commands.Command{
@@ -79,13 +76,12 @@ func (b *Bot) commandHandler(session *discordgo.Session, message *discordgo.Mess
 		Session: session,
 		Message: message,
 		BotID:   botID,
+		DB:      b.DB,
 	}
-	err := commands.Execute(command)
+	err := command.Execute()
 	if err != nil {
-		log.Printf("There was problems with some commands %v %v", command, err)
+		log.Printf("There was problems with command %v %v", command, err)
 	}
-
-	return err
 }
 
 func (b *Bot) isAdmin(userID string) bool {

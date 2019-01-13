@@ -4,13 +4,11 @@ import (
 	"strconv"
 
 	"github.com/bwmarrin/discordgo"
-	Model "github.com/kaidoj/gamestatsbot/discord-bot/models/user"
 )
 
 //DisplayTopUsersByMessageCount will display top users by message count
-func DisplayTopUsersByMessageCount(c *Command) (*discordgo.Message, error) {
-	userModel := &Model.User{}
-	users := userModel.GetUsersByMessageCount(10)
+func (c *Command) DisplayTopUsersByMessageCount() (*discordgo.Message, error) {
+	users := c.DB.GetUsersByMessageCount(10)
 
 	fields := []*discordgo.MessageEmbedField{}
 	for _, u := range users {

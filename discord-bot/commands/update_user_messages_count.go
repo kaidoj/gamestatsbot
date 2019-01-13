@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	UserModel "github.com/kaidoj/gamestatsbot/discord-bot/models/user"
+	"github.com/kaidoj/gamestatsbot/discord-bot/models"
 )
 
 var (
@@ -16,7 +16,7 @@ var (
 )
 
 //UpdateUserMessagesCount update users message count from discord api
-func UpdateUserMessagesCount(c *Command) error {
+func (c *Command) UpdateUserMessagesCount() error {
 	start := time.Now()
 	defer func() {
 		fmt.Println(time.Since(start))
@@ -27,16 +27,16 @@ func UpdateUserMessagesCount(c *Command) error {
 	messagesCh := make(chan []*discordgo.Message)
 
 	wg.Add(1)
-	go getUsersMessages(c, "", messagesCh)
+	go c.getUsersMessages(messagesCh, "")
 
-	usersList := countUsersMessages(c, messagesCh)
+	usersList := c.countUsersMessages(messagesCh)
 	wg.Wait()
 
 	//reset users message counts to 0
-	UserModel.ResetMessagesCount()
+	c.DB.ResetMessagesCount()
 
 	for _, u := range usersList {
-		res := u.CreateOrUpdate()
+		res := c.DB.CreateOrUpdate(u)
 		if res != nil {
 			err = res
 		}
@@ -45,7 +45,7 @@ func UpdateUserMessagesCount(c *Command) error {
 	return err
 }
 
-func getUsersMessages(c *Command, beforeID string, messagesCh chan []*discordgo.Message) {
+func (c *Command) getUsersMessages(messagesCh chan []*discordgo.Message, beforeID string) {
 	defer wg.Done()
 	messages, err := c.Session.ChannelMessages(c.Message.ChannelID, fetchMessagesCount, beforeID, "", "")
 	if err != nil {
@@ -57,15 +57,15 @@ func getUsersMessages(c *Command, beforeID string, messagesCh chan []*discordgo.
 	messagesLen := len(messages)
 	if messagesLen == fetchMessagesCount {
 		wg.Add(1)
-		go getUsersMessages(c, messages[messagesLen-1].ID, messagesCh)
+		go c.getUsersMessages(messagesCh, messages[messagesLen-1].ID)
 	} else {
 		close(messagesCh)
 	}
 
 }
 
-func countUsersMessages(c *Command, messagesCh chan []*discordgo.Message) map[string]*UserModel.User {
-	users := make(map[string]*UserModel.User)
+func (c *Command) countUsersMessages(messagesCh chan []*discordgo.Message) map[string]*models.User {
+	users := make(map[string]*models.User)
 
 	for messages := range messagesCh {
 		for _, m := range messages {
@@ -78,7 +78,7 @@ func countUsersMessages(c *Command, messagesCh chan []*discordgo.Message) map[st
 				userExists.MessageCount++
 				users[author.ID] = userExists
 			} else {
-				users[author.ID] = &UserModel.User{
+				users[author.ID] = &models.User{
 					UserID:       author.ID,
 					MessageCount: 1,
 					Username:     author.Username,

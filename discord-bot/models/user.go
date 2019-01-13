@@ -5,26 +5,31 @@ import (
 	"time"
 
 	"github.com/globalsign/mgo/bson"
-	"github.com/kaidoj/gamestatsbot/discord-bot/db"
-	models "github.com/kaidoj/gamestatsbot/discord-bot/models/model"
 )
 
-var userCollection string = "users"
+const userCollection = "users"
+
+type UserInterface interface {
+	GetUsersByMessageCount(limit int) []*User
+	CreateOrUpdate(u *User) error
+	ResetMessagesCount() error
+	UpdateMessageCount(u *User) error
+}
 
 //User structure
 type User struct {
-	ID bson.ObjectId `bson:"_id,omitempty"`
-	models.ModelImpl
+	ID           bson.ObjectId `bson:"_id,omitempty"`
 	UserID       string
 	Username     string
 	MessageCount int
+	Model
 }
 
 //FindByID gets user by id
-func (u *User) FindByID(userID string) (*User, error) {
-	session := db.Con.GetSession().Copy()
+func (db *DB) FindByID(userID string) (*User, error) {
+	session := db.GetSession().Copy()
 	defer session.Close()
-	c := db.Con.GetDb(session).C(userCollection)
+	c := db.GetDb(session).C(userCollection)
 
 	user := &User{}
 	err := c.Find(bson.M{"userid": userID}).One(&user)
@@ -32,10 +37,10 @@ func (u *User) FindByID(userID string) (*User, error) {
 }
 
 //Insert user to db
-func (u *User) Insert() error {
-	session := db.Con.GetSession().Copy()
+func (db *DB) Insert(u *User) error {
+	session := db.GetSession().Copy()
 	defer session.Close()
-	c := db.Con.GetDb(session).C(userCollection)
+	c := db.GetDb(session).C(userCollection)
 
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = time.Now()
@@ -45,10 +50,10 @@ func (u *User) Insert() error {
 }
 
 //Update user to db
-func (u *User) Update() error {
-	session := db.Con.GetSession().Copy()
+func (db *DB) Update(u *User) error {
+	session := db.GetSession().Copy()
 	defer session.Close()
-	c := db.Con.GetDb(session).C(userCollection)
+	c := db.GetDb(session).C(userCollection)
 	colQuerier := bson.M{"_id": u.ID}
 	change := bson.M{"$set": bson.M{
 		"userid":       u.UserID,
@@ -61,10 +66,10 @@ func (u *User) Update() error {
 }
 
 //ResetMessagesCount reset user messages count
-func ResetMessagesCount() error {
-	session := db.Con.GetSession().Copy()
+func (db *DB) ResetMessagesCount() error {
+	session := db.GetSession().Copy()
 	defer session.Close()
-	c := db.Con.GetDb(session).C(userCollection)
+	c := db.GetDb(session).C(userCollection)
 	colQuerier := bson.M{}
 	change := bson.M{"$set": bson.M{
 		"messagecount": 0,
@@ -75,27 +80,27 @@ func ResetMessagesCount() error {
 }
 
 //CreateOrUpdate user
-func (u *User) CreateOrUpdate() error {
+func (db *DB) CreateOrUpdate(u *User) error {
 	var err error
-	userExists, err := u.FindByID(u.UserID)
+	userExists, err := db.FindByID(u.UserID)
 	if err == nil {
 		userExists.MessageCount = u.MessageCount
 		userExists.Username = u.Username
-		err = userExists.Update()
+		err = db.Update(userExists)
 	} else {
-		err = u.Insert()
+		err = db.Insert(u)
 	}
 
 	return err
 }
 
 //GetUsersByMessageCount users by message count
-func (u *User) GetUsersByMessageCount(limit int) []User {
-	session := db.Con.GetSession().Copy()
+func (db *DB) GetUsersByMessageCount(limit int) []*User {
+	session := db.GetSession().Copy()
 	defer session.Close()
-	c := db.Con.GetDb(session).C(userCollection)
+	c := db.GetDb(session).C(userCollection)
 
-	var results []User
+	var results []*User
 	err := c.Find(bson.M{}).Sort("-messagecount").Limit(limit).All(&results)
 	if err != nil {
 		log.Printf("GetUsersByMessageCount() could not fetch messages: %v", err)
@@ -105,13 +110,16 @@ func (u *User) GetUsersByMessageCount(limit int) []User {
 }
 
 //UpdateMessageCount updates message count for user
-func (u *User) UpdateMessageCount() {
-	user, err := u.FindByID(u.UserID)
+func (db *DB) UpdateMessageCount(u *User) error {
+	user, err := db.FindByID(u.UserID)
+	var failed error
 	if err == nil {
 		user.MessageCount++
-		user.Update()
+		failed = db.Update(u)
 	} else {
 		u.MessageCount = 1
-		u.Insert()
+		failed = db.Insert(u)
 	}
+
+	return failed
 }
