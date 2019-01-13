@@ -6,9 +6,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+//Init initialize config
 func Init(path string) *viper.Viper {
-	/*gp := os.Getenv("GOPATH")
-	ap := path.Join(gp, "src/github.com/kaidoj/gamestatsbot/discord-bot")*/
 	viper.SetConfigName("config")
 	viper.AddConfigPath(path)
 	err := viper.ReadInConfig()
