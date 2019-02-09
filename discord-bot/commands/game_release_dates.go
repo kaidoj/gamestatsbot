@@ -47,7 +47,7 @@ func (c *Command) GetGameReleaseDates() (*discordgo.Message, error) {
 		Author: &discordgo.MessageEmbedAuthor{},
 		Color:  0x00ff00, // Green
 		Fields: fields,
-		Title:  "Uued mängud (Tänasest 4 kuud)",
+		Title:  "Uued mängud tulemas",
 	}
 
 	m, err := c.Session.ChannelMessageSendEmbed(c.Message.ChannelID, embed)
