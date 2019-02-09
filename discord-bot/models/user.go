@@ -14,6 +14,9 @@ type UserInterface interface {
 	CreateOrUpdate(u *User) error
 	ResetMessagesCount() error
 	UpdateMessageCount(u *User) error
+	FindByID(userID string) (*User, error)
+	Insert(u *User) error
+	Update(u *User) error
 }
 
 //User structure

@@ -77,6 +77,7 @@ func (b *Bot) commandHandler(session *discordgo.Session, message *discordgo.Mess
 		Message: message,
 		BotID:   botID,
 		DB:      b.DB,
+		Config:  b.config,
 	}
 	err := command.Execute()
 	if err != nil {
