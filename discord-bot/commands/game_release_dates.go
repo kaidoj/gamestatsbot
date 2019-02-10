@@ -9,20 +9,20 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+//GetGameReleaseDates from external api
 func (c *Command) GetGameReleaseDates() (*discordgo.Message, error) {
 
 	fields := []*discordgo.MessageEmbedField{}
 
-	PC, err := c.fetchGameReleaseTimes()
-	monthsWithGames := formatGamesByMonth(PC)
+	releasedGames, err := c.fetchGameReleaseTimes()
+	monthsWithGames := formatGamesByMonth(releasedGames)
 
 	for key, games := range monthsWithGames {
-
 		var message string
 		i := 1
 		for _, v := range games {
 			message += v + "\n "
-
+			//break messages to groups of 25 (field value charater restriction)
 			if i == 25 {
 				fields = append(fields, &discordgo.MessageEmbedField{
 					Name:   key,
@@ -32,10 +32,8 @@ func (c *Command) GetGameReleaseDates() (*discordgo.Message, error) {
 				i = 0
 				message = ""
 			}
-
 			i++
 		}
-
 		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   key,
 			Value:  message,
@@ -50,7 +48,10 @@ func (c *Command) GetGameReleaseDates() (*discordgo.Message, error) {
 		Title:  "Uued mängud tulemas",
 	}
 
-	m, err := c.Session.ChannelMessageSendEmbed(c.Message.ChannelID, embed)
+	//create private channel between user and bot
+	userChannel, err := c.Session.UserChannelCreate(c.User.ID)
+	//send  to message user
+	m, err := c.Session.ChannelMessageSendEmbed(userChannel.ID, embed)
 	return m, err
 }
 
@@ -69,7 +70,7 @@ func (c *Command) fetchGameReleaseTimes() ([]*igdb.Game, error) {
 		igdb.SetFilter("first_release_date", igdb.OpLessThanEqual, strconv.FormatInt(months.Unix(), 10)),
 	)
 
-	PC, err := client.Games.List(
+	games, err := client.Games.List(
 		nil,
 		byFirstReleaseDate,
 		igdb.SetFilter("platforms", igdb.OpIn, "6"),
@@ -80,7 +81,7 @@ func (c *Command) fetchGameReleaseTimes() ([]*igdb.Game, error) {
 		return nil, err
 	}
 
-	return PC, nil
+	return games, nil
 }
 
 //format so they are in their month group
