@@ -10,4 +10,5 @@ Run:
 Commands:
 - ```!mk name``` displays name with little twist
 - ```!mk top``` displays top users by message count
+- ```!mk releases``` displays games that will be released soon
 - ```!mk admin messages``` updates user messages count from discord api to local db
