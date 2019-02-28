@@ -1,12 +1,15 @@
 FROM golang:alpine AS build-env
+ENV GO111MODULE=on
 WORKDIR /go/src/github.com/kaidoj/gamestatsbot/discord-bot
-COPY . .
+
 RUN apk update && apk upgrade && \
-    apk add --no-cache bash git openssh && \
-    go get github.com/bwmarrin/discordgo && \
-    go get -u -v github.com/spf13/viper && \
-    go get github.com/globalsign/mgo && \
-    go get github.com/Henry-Sarabia/igdb
+    apk add --no-cache bash git openssh
+
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+COPY . .
 
 RUN CGO_ENABLED=0 go build -o main
 

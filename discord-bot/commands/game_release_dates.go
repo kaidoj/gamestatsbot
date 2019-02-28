@@ -73,7 +73,7 @@ func (c *Command) fetchGameReleaseTimes() ([]*igdb.Game, error) {
 	games, err := client.Games.List(
 		nil,
 		byFirstReleaseDate,
-		igdb.SetFilter("platforms", igdb.OpIn, "6"),
+		igdb.SetFilter("platforms", igdb.OpEquals, "6"),
 	)
 
 	if err != nil {
