@@ -69,9 +69,7 @@ func (c *Command) fetchGameReleaseTimes() ([]*igdb.Game, error) {
 		igdb.SetFilter("first_release_date", igdb.OpGreaterThanEqual, strconv.FormatInt(today.Unix(), 10)),
 		igdb.SetFilter("first_release_date", igdb.OpLessThanEqual, strconv.FormatInt(months.Unix(), 10)),
 	)
-
-	games, err := client.Games.List(
-		nil,
+	games, err := client.Games.Index(
 		byFirstReleaseDate,
 		igdb.SetFilter("platforms", igdb.OpEquals, "6"),
 	)
